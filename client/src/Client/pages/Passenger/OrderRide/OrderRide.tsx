@@ -16,9 +16,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid';
 import withLayout from '../../../components/LayoutHOC.tsx';
 import { api } from '../../../../services/api';
-import { useAuthStore } from '../../../../services/auth';
+import { useUserStore } from '../../../../services/auth/user';
+import { setToken as setGuestToken } from '../../../../services/auth/guest';
 import { Ride, RideRequester, RideSpecialRequestEnum, RideStateEnum } from '../../../../api-client';
-import { useActiveRide } from '../../../../hooks/useActiveRide';
+import { useActiveRide } from '../../../../hooks/activeRide';
 
 interface OrderRideFormData {
   ride: Ride;
@@ -51,8 +52,7 @@ enum DestinationSourceEnum {
 }
 
 const OrderRide = () => {
-  const user = useAuthStore((state) => state.user) as RideRequester;
-  const setGuestToken = useAuthStore((state) => state.setGuestToken);
+  const user = useUserStore((state) => state.user) as RideRequester;
   const { reFetch: reFetchActiveRide } = useActiveRide();
   const [autofilledAddress, setAutofilledAddress] = useState<DestinationSourceEnum>(
     DestinationSourceEnum.Destination
@@ -251,27 +251,27 @@ const OrderRide = () => {
         </FormControl>
         <FormControl>
           <TextField
-            label={user ? 'הערה' : 'מטרת הנסיעה'}
+            label="תיאור הנסיעה"
             type="string"
             required={!user}
-            placeholder="הסבר קצר לגבי מטרת הנסיעה"
+            placeholder="הסבר קצר לגבי תיאור הנסיעה"
             error={!!errors?.ride?.comment}
             {...register('ride.comment', {
-              maxLength: 50,
+              maxLength: 100,
               required: !user
             })}
           />
           <span
             className={`absolute top-1 left-1 text-xs ${
-              (watch().ride?.comment?.length || 0) >= 50 ? 'text-red-500' : ''
+              (watch().ride?.comment?.length || 0) >= 100 ? 'text-red-500' : ''
             }`}
           >
-            {watch().ride?.comment?.length || 0} / 50
+            {watch().ride?.comment?.length || 0} / 100
           </span>
           {errors.ride?.comment && (
             <FormHelperText error className="absolute top-full mr-0">
-              {errors.ride.comment.type === 'required' && 'יש להזין את מטרת הנסיעה'}
-              {errors.ride.comment.type === 'maxLength' && 'הגעתם למקסימום אורך ההודעה המותר'}
+              {errors.ride.comment.type === 'required' && 'יש להזין את תיאור הנסיעה'}
+              {errors.ride.comment.type === 'maxLength' && 'חרגתם מאורך ההודעה המותר'}
             </FormHelperText>
           )}
         </FormControl>
@@ -412,7 +412,7 @@ const OrderRide = () => {
 
 const OrderRideWrapper = () => {
   const navigate = useNavigate();
-  const user = useAuthStore((state) => state.user);
+  const user = useUserStore((state) => state.user);
 
   const OrderRideComponent = withLayout(
     OrderRide,
