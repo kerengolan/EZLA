@@ -116,7 +116,7 @@ export const RideCard = ({
             </Typography>
           </div>
           <SpecialRequestsChips specialRequests={ride.specialRequest || []} />
-          {selected && (
+          {(selected || true) && (
             <>
               <Divider className="my-1" />
               <div className="flex gap-4">
